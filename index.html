@@ -1622,11 +1622,13 @@
             btnSubmit.innerHTML = '<span>Отправка уведомления на почту...</span>';
           }
 
-          setTimeout(() => {
-            // Генерация номера заявки
-            const randomId = Math.floor(100 + Math.random() * 900);
+          // Генерация номера заявки
+          const randomId = Math.floor(100 + Math.random() * 900);
+          const generatedTicket = `№ ИВ-2026-${randomId}`;
+
+          const showSuccess = () => {
             if (ticketNumber) {
-              ticketNumber.textContent = `№ ИВ-2026-${randomId}`;
+              ticketNumber.textContent = generatedTicket;
             }
             if (successTargetEmail) {
               successTargetEmail.textContent = email;
@@ -1637,7 +1639,32 @@
               formSuccessAlert.classList.add('active');
               formSuccessAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-          }, 700);
+          };
+
+          // Почтовый шлюз Google Apps Script для отправки реального письма
+          const EMAIL_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyBWWgUhFZeOEJkqZMh_WUv-EPHXRLqYgBRrc8sf1Fg7g4No8e8gVK5Go8HT0njdYzOmQ/exec';
+
+          if (EMAIL_WEBHOOK_URL && EMAIL_WEBHOOK_URL !== 'GOOGLE_SCRIPT_URL_PLACEHOLDER') {
+            fetch(EMAIL_WEBHOOK_URL, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({
+                name: name,
+                email: email,
+                branch: branch,
+                topic: topic,
+                ticket: generatedTicket
+              })
+            }).then(() => {
+              showSuccess();
+            }).catch((err) => {
+              console.warn('Ошибка отправки через шлюз:', err);
+              showSuccess();
+            });
+          } else {
+            setTimeout(showSuccess, 700);
+          }
         });
       }
     });
