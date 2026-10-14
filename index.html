@@ -1400,7 +1400,9 @@
             <h4>✓ Заявка успешно зарегистрирована!</h4>
             <p>Оргкомитет РЦК забронировал ВКС-комнату LiveKit и назначил AI-агента для записи эфира.</p>
             <div class="ticket-id" id="ticketNumber">№ ИВ-2026-084</div>
-            <p style="margin-top: 10px; font-size: 13px; color: #006644;">Уведомление со ссылкой для подключения отправлено на указанный контакт.</p>
+            <p style="margin-top: 10px; font-size: 13px; color: #006644;">
+              Уведомление с параметрами подключения и номером брони отправлено на почту: <strong id="successTargetEmail" style="word-break: break-all; color: #0052CC;"></strong>
+            </p>
           </div>
 
           <form id="meetingForm" novalidate>
@@ -1440,17 +1442,17 @@
                 <input type="text" id="meetingTopic" class="form-input" placeholder="Например: Итоги внедрения бережливых проектов в IV квартале" required>
               </div>
 
-              <!-- Контакт для связи -->
+              <!-- Почта для отправки уведомления -->
               <div class="form-group form-grid-full">
-                <label for="contactInfo" class="form-label">Контакт для связи (Telegram / Телефон / Email) *</label>
-                <input type="text" id="contactInfo" class="form-input" placeholder="@username или +7 (999) 000-00-00" required>
-                <span class="form-hint">Сюда поступит подтверждение бронирования и ссылка на трансляцию</span>
+                <label for="organizerEmail" class="form-label">Электронная почта для получения уведомления *</label>
+                <input type="email" id="organizerEmail" class="form-input" placeholder="ivanov@rck.local или ivanov@company.ru" required>
+                <span class="form-hint">На этот e-mail поступит подтверждение бронирования, ссылка на трансляцию и номер заявки</span>
               </div>
 
               <!-- Кнопка отправки -->
               <div class="form-group form-grid-full form-submit-wrap">
                 <button type="submit" class="btn btn-primary btn-submit" id="btnSubmitForm">
-                  <span>Отправить заявку в оргкомитет</span>
+                  <span>Отправить заявку и получить ссылку на почту</span>
                 </button>
               </div>
             </div>
@@ -1584,10 +1586,11 @@
         });
       });
 
-      // 5. ВАЛИДАЦИЯ И ОТПРАВКА ФОРМЫ ЗАЯВКИ
+      // 5. ВАЛИДАЦИЯ И ОТПРАВКА ФОРМЫ ЗАЯВКИ НА EMAIL
       const meetingForm = document.getElementById('meetingForm');
       const formSuccessAlert = document.getElementById('formSuccessAlert');
       const ticketNumber = document.getElementById('ticketNumber');
+      const successTargetEmail = document.getElementById('successTargetEmail');
       const btnSubmit = document.getElementById('btnSubmitForm');
 
       if (meetingForm) {
@@ -1597,24 +1600,36 @@
           const name = document.getElementById('organizerName').value.trim();
           const branch = document.getElementById('branchSelect').value;
           const topic = document.getElementById('meetingTopic').value.trim();
-          const contact = document.getElementById('contactInfo').value.trim();
+          const emailInput = document.getElementById('organizerEmail');
+          const email = emailInput ? emailInput.value.trim() : '';
 
-          if (!name || !branch || !topic || !contact) {
+          if (!name || !branch || !topic || !email) {
             alert('Пожалуйста, заполните все обязательные поля формы.');
+            return;
+          }
+
+          // Валидация формата электронной почты
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            alert('Пожалуйста, укажите корректный адрес электронной почты (например: ivanov@rck.local или ivanov@company.ru).');
+            if (emailInput) emailInput.focus();
             return;
           }
 
           // Анимация отправки
           if (btnSubmit) {
             btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<span>Регистрация в оргкомитете...</span>';
+            btnSubmit.innerHTML = '<span>Отправка уведомления на почту...</span>';
           }
 
           setTimeout(() => {
-            // Генерация случайного номера заявки
+            // Генерация номера заявки
             const randomId = Math.floor(100 + Math.random() * 900);
             if (ticketNumber) {
               ticketNumber.textContent = `№ ИВ-2026-${randomId}`;
+            }
+            if (successTargetEmail) {
+              successTargetEmail.textContent = email;
             }
 
             meetingForm.style.display = 'none';
